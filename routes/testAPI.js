@@ -3,10 +3,6 @@ var router = express.Router();
 const request = require('superagent');
 
 router.get('/', function(req, response, next) {
-    // for (query in req.query){
-    //     console.log(JSON.stringify(query))
-    // }
-    console.log(req.query.type)
     var payload = GetCMSPayload(req.query.type, response);    
 });
 

@@ -13,6 +13,8 @@
     "http-errors": "~1.6.3",
     "ibm-watson": "^5.1.0",
     "jade": "~1.11.0",
+    "mongodb": "^3.3.3",
+    "mongoose": "^5.7.6",
     "morgan": "~1.9.1",
     "superagent": "^5.1.0"
   },

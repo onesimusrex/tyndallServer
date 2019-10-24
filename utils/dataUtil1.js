@@ -6,6 +6,7 @@ function ifsData () {
     this.GetKeywordRelevance = GetKeywordRelevance;
     this.AddNlpFeature = AddNlpFeature;
     this.ProcessIFSData = ProcessIFSData;
+    this.nlp = nlp;
 }
 
 function init (ifsText){
@@ -62,8 +63,9 @@ function init (ifsText){
 
 
     this.ElimCategoryText(data)
+    _this = this;
 
-    this.ProcessIFSData(naturalLanguageUnderstanding);
+    this.ProcessIFSData(naturalLanguageUnderstanding, _this);
 
 }
 
@@ -98,7 +100,7 @@ function GetHeadings (body, _divisionHeading ){
     }
 }
 
-function AddNlpFeature(_analysisResults){
+function AddNlpFeature(_analysisResults, dataitem){
     var ibmReturnTime = new Date() 
     // console.log("send time: " +ibmReturnTime.toString())    
     nlpData = {};
@@ -127,24 +129,83 @@ function AddNlpFeature(_analysisResults){
                     })
                 }
             }
-            nlpType.push(tempObj)
+            // nlpType.push(tempObj)
+            nlpData[featureTypes[i]].push(tempObj)
         }
     }
-    return nlpData;
+    dataitem["keywords"] = nlpData["keywords"]
+    dataitem["concepts"] = nlpData["concepts"]
+    // console.log("mutated data entry: ")
+    // console.log(dataitem)
+    // return nlpData;
+
+
+
+    mongo2(dataitem)
+    return dataitem;
 }
 
-function ProcessIFSData(naturalLanguageUnderstanding) {
+function mongo2(dataitem, mongoClient){
+    var MongoClient = require('mongodb').MongoClient;
+    const assert = require('assert')
+    var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
+    const dbName = "tyndall1"
+    const client = new MongoClient(url, {useNewUrlParser: true});
+
+    client.connect (function (err){
+        // assert.equal(null, err);
+        console.log("Connected successfully to server");
+        const db = client.db("tyndall1");
+        // insertDocuments
+        //console.log(db)
+        insertDocuments(db, console.log, dataitem)
+        client.close();
+    })
+}
+
+function insertDocuments (db, callback, dataitem){
+    const collection = db.collection("entries");
+    collection.insertMany([
+        dataitem
+    ], function (err, result){
+        // assert.equal(err, null);
+        // callback(result)
+    })
+}
+
+function ProcessIFSData(naturalLanguageUnderstanding, _this) {
+    // /*
     for (var i=0; i<data.length; i++){
-        if (data[i].csi == '08 71 00'){
+        if (data[i].body != ''  && data[i].body != "\r"){
+            console.log(data[i])
+            // if (data[i].csi == '08 71 00'){
             //prints the data item
-            //console.log(data[i].csi + '\n' + data[i].title + '\n' + data[i].body)
-            return this.GetKeywordRelevance(data[i].body, 3, naturalLanguageUnderstanding);
+            // console.log(data[i].csi + '\n' + data[i].title + '\n' + data[i].body)
+            this.GetKeywordRelevance(data[i].body, 30, naturalLanguageUnderstanding, data[i]);
         }
         
     }
+    // _this = this
+    // _count = data.length - 1
+    // this.nlp(data, naturalLanguageUnderstanding, _count, _this)
 }
 
-function GetKeywordRelevance(_text, num, nlu){
+function nlp(data, naturalLanguageUnderstanding, _count, _this){
+    if (data[_count].body != ''  && data[_count].body != "\r"){
+        _this.GetKeywordRelevance(data[_count].body, 25, naturalLanguageUnderstanding, data[_count]);
+        _count--
+        if (_count >= 0){
+            setTimeout (nlp(data, naturalLanguageUnderstanding, _count), 200)
+        }
+    } else {
+        _count--
+        if (_count >= 0){
+            setTimeout (nlp(data, naturalLanguageUnderstanding, _count), 200)
+        }
+    }
+}
+
+function GetKeywordRelevance(_text, num, nlu, dataitem){
     var analyzeParams = {
         // 'url': 'www.nytimes.com',
         text: _text,
@@ -169,7 +230,8 @@ function GetKeywordRelevance(_text, num, nlu){
         .then(analysisResults => {
             // console.log(JSON.stringify(analysisResults.result, null, 2))
             // console.log(this)
-            console.log(_this.AddNlpFeature(analysisResults.result));
+            _this.AddNlpFeature(analysisResults.result, dataitem)
+            // console.log(_this.AddNlpFeature(analysisResults.result, dataitem));
             // return _this.AddNlpFeature(analysisResults.result);
         })
         .catch(err => {

@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 const request = require('superagent');
 var ifsData = require('../utils/dataUtil1.js')
+var MongoClient = require('mongodb').MongoClient;
+const assert = require('assert')
 
 router.get('/', function(req, response, next) {
     var payload = GetCMSPayload(req.query.type, response);    
@@ -19,9 +21,10 @@ function GetCMSPayload(query, response){
                     .get(JSON.parse(res.text).data[0].attributes.fields.ifspdf.url)
                     .then(function(txtfile){
                         // console.log(txtfile.text)
+                        // console.log("ha")
                         console.log("process" + ifsData.init(txtfile.text, response));
                         // response.send(JSON.stringify({text: txtfile}))
-                        response.send( JSON.stringify({json: ifsData.init(txtfile.text)} ) )
+                        // response.send( JSON.stringify({json: ifsData.init(txtfile.text)} ) )
                     })
             } else {
                 _data = JSON.parse(res.text);

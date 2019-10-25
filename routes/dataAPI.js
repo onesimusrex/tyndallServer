@@ -14,7 +14,7 @@ router.get('/', function(req, response, next) {
 
     mongo2 (response);
     // MongooseCallback(response)
-    console.log("data api contacted")
+    // console.log("data api contacted")
 });
 
 function mongo2(response){
@@ -27,8 +27,27 @@ function mongo2(response){
         const db = client.db("tyndall1");
         // insertDocuments
         //console.log(db)
-        insertDocuments(db, console.log)
+        // insertDocuments(db, console.log)
+        FindKeyword(db, console.log)
         client.close();
+    })
+}
+function FindKeyword (db, callback){
+
+    // {keywords: {$all: [ {text: "permanent global positioning system"} ] }}
+    const collection = db.collection("entries");
+    collection.find( {csi:  "03 30 00"} ).toArray(function (err, result){
+        console.log(JSON.stringify(result))
+    })
+}
+function insertDocuments (db, callback){
+    const collection = db.collection("entries");
+    collection.insertMany([
+        {_idx: 20, name: "hamburger"},
+        {_idx: 40, name: "taco"}
+    ], function (err, result){
+        // assert.equal(err, null);
+        callback(result)
     })
 }
 
@@ -48,16 +67,7 @@ function QueryMongoDB (response){
     })
 }
 
-function insertDocuments (db, callback){
-    const collection = db.collection("entries");
-    collection.insertMany([
-        {_idx: 20, name: "hamburger"},
-        {_idx: 40, name: "taco"}
-    ], function (err, result){
-        // assert.equal(err, null);
-        callback(result)
-    })
-}
+
 
 // function MongooseCallback (response){
 //     var mongoose.connect('mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority', {useNewUrlParser: true});

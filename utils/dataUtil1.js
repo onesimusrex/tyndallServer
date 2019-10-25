@@ -177,7 +177,7 @@ function ProcessIFSData(naturalLanguageUnderstanding, _this) {
     // /*
     for (var i=0; i<data.length; i++){
         if (data[i].body != ''  && data[i].body != "\r"){
-            console.log(data[i])
+            // console.log(data[i])
             // if (data[i].csi == '08 71 00'){
             //prints the data item
             // console.log(data[i].csi + '\n' + data[i].title + '\n' + data[i].body)

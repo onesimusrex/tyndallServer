@@ -12,12 +12,12 @@ router.get('/', function(req, response, next) {
     // var payload = GetCMSPayload(req.query.type, response);    
     // QueryMongoDB (response)
 
-    mongo2 (response);
+    getMongoClient (response, req.query.keyword);
     // MongooseCallback(response)
     // console.log("data api contacted")
 });
 
-function mongo2(response){
+function getMongoClient(response, keyword){
     const dbName = "tyndall1"
     const client = new MongoClient(url, {useNewUrlParser: true});
 
@@ -28,16 +28,20 @@ function mongo2(response){
         // insertDocuments
         //console.log(db)
         // insertDocuments(db, console.log)
-        FindKeyword(db, console.log)
+        FindKeyword(db, response, keyword)
         client.close();
     })
 }
-function FindKeyword (db, callback){
-
+function FindKeyword (db, response, keyword){
+    //https://stackoverflow.com/questions/15136016/how-can-i-sort-by-elemmatch-in-mongodb
     // {keywords: {$all: [ {text: "permanent global positioning system"} ] }}
+    var re = new RegExp(keyword,"i")
     const collection = db.collection("entries");
-    collection.find( {csi:  "03 30 00"} ).toArray(function (err, result){
-        console.log(JSON.stringify(result))
+    collection.find( {keywords: {$elemMatch: {text: re}} } ).toArray(function (err, result){
+    // collection.find( {keywords: {$elemMatch: {text: re}} } ).sort({keywords: {$elemMatch: {relevance: -1}} }).toArray(function (err, result){
+        var payload = JSON.stringify(result)
+        console.log(payload)
+        response.send(payload)
     })
 }
 function insertDocuments (db, callback){

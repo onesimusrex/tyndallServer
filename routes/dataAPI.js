@@ -24,7 +24,7 @@ function getMongoClient(response, keyword){
 
     client.connect (function (err){
         // assert.equal(null, err);
-        console.log("Connected successfully to server");
+        // console.log("Connected successfully to server");
         const db = client.db("tyndall1");
         // insertDocuments
         //console.log(db)
@@ -38,27 +38,8 @@ function FindKeyword (db, response, keyword){
     // {keywords: {$all: [ {text: "permanent global positioning system"} ] }}
     var re = new RegExp(keyword,"i")
     var re2 = new RegExp(keyword+"\\s","i")
-    console.log(re)
+    // console.log(re)
     const collection = db.collection("entries");
-    
-
-    // ,
-    //     {$match: {text: re}},
-    //     {$sort: {"keywords.relevance":-1}}
-    // ])
-
-
-    // db.collection('entries').aggregate([
-    //     {$unwind: "$keywords"},
-    //     // {$match: {"keywords.text": re}},
-    //     {$match: {$or: [{"keywords.text": re},{"keywords.text": re2}]}},
-    //     {$sort: {"keywords.relevance": -1} }
-    // ]).toArray(function (err, result){
-    //     result = [...new Set(result)];
-    //     var payload = JSON.stringify(result)
-    //     // console.log(payload)
-    //     response.send(payload)
-    // })
 
     docArr = []
     docSet = {}
@@ -95,23 +76,30 @@ function FindKeyword (db, response, keyword){
         client2.connect (function (err){
             const db2 = client2.db("tyndall1");
             db2.collection('entries').find(_query).toArray(function(err, result){
-                console.log(docArr.length)
-                result2 = result.map(function(item){
-                    for(var i=0; i<docArr.length; i++){
-                        console.log(item._id.toString().trim() +" | "+ docArr[i]._id)
-                        if(item["_id"].toString().trim() == docArr[i]._id.toString().trim()){
-                            console.log("match")
-                            item.relevance = docArr[i].relevance;
-                            item.keyword = docArr[i].keyword;
-                            return item
+                // console.log(docArr.length)
+                if (err){
+                    response.send(null)
+                    return
+                }else {
+                    result2 = result.filter(function(item){
+                        for(var i=0; i<docArr.length; i++){
+                            // console.log(item._id.toString().trim() +" | "+ docArr[i]._id)
+                            if(item["_id"].toString().trim() == docArr[i]._id.toString().trim()){
+                                // console.log("match")
+                                item.relevance = docArr[i].relevance;
+                                item.keyword = docArr[i].keyword;
+                                return true
+                            }
                         }
-                    }
-                })
-                result = result.sort(function (a, b){
-                    return b.relevance - a.relevance;
-                })
-                var payload = JSON.stringify(result);
-                response.send(payload);
+                    })
+                    console.log(result2)
+                    result = result2.sort(function (a, b){
+                        return b.relevance - a.relevance;
+                    })
+                    var payload = JSON.stringify(result);
+                    response.send(payload);
+                }
+
                 
             })
             client2.close();
@@ -152,7 +140,8 @@ function QueryMongoDB (response){
         //start the server
         // mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority
         // response.send(database)
-        console.log(database.db("tyndall1").entries)
+        database.db("tyndall1").entries
+        // console.log(database.db("tyndall1").entries)
         // var collect1 = database.db("cluster0").collect1;
         // collect1.insert_one({
         //     "_id": 1,

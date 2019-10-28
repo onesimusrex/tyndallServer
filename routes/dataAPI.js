@@ -105,23 +105,6 @@ function FindKeyword (db, response, keyword){
             client2.close();
         })
     })
-
-    //returns working data
-    // toArray(function (err, result){
-    //     result = [...new Set(result)];
-    //     var payload = JSON.stringify(result)
-    //     // console.log(payload)
-    //     response.send(payload)
-    // })
-
-
-    // console.log(ag)
-    // console.log(db.collection('entries'))
-    // collection.find( {keywords: {$elemMatch: {text: re}} } ).toArray(function (err, result){
-    //     var payload = JSON.stringify(result)
-    //     // console.log(payload)
-    //     // response.send(payload)
-    // })
     
 }
 function insertDocuments (db, callback){

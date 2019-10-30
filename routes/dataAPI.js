@@ -45,16 +45,21 @@ function FindKeyword (db, response, keyword){
     docSet = {}
 
     db.collection('entries').aggregate([
-        {$unwind: "$keywords"},
+        // {$unwind: "$keywords"},
+        // {$unwind: "$concepts"},
         // {$match: {"keywords.text": re}},
-        {$match: {$or: [{"keywords.text": re},{"keywords.text": re2}]}}/*,
-        {$sort: {"keywords.relevance": -1} }*/
+        // {$match: {$or: [{"keywords.text": re},{"keywords.text": re2}]}}/*,
+        // {$sort: {"keywords.relevance": -1} }*/
+        {$project: {tags: {$concatArrays: ["$keywords", "$concepts"]}}},
+        {$unwind: "$tags"},
+        {$match: {$or: [{"tags.text": re},{"tags.text": re2}]}}
+        // {$match: {$or: [{"tags.text": re},{"tags.text": re2}]}}
     ]).forEach(function (doc){
         // console.log(doc)
         // console.log(docSet.hasOwnProperty(doc._id))
         if (!(docSet.hasOwnProperty(doc._id))){
             docSet[doc._id] = doc._id;
-            docArr.push({_id: doc._id, keyword: doc.keywords.text, relevance: doc.keywords.relevance})
+            docArr.push({_id: doc._id, keyword: doc.tags.text, relevance: doc.tags.relevance})
         }
     }, function (){
         // console.log(docArr)
@@ -92,7 +97,7 @@ function FindKeyword (db, response, keyword){
                             }
                         }
                     })
-                    console.log(result2)
+                    // console.log(result2)
                     result = result2.sort(function (a, b){
                         return b.relevance - a.relevance;
                     })

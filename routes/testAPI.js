@@ -24,6 +24,7 @@ function GetCMSPayload(query, response){
                         // console.log("ha")
                         console.log("process" + ifsData.init(txtfile.text, response));
                         // response.send(JSON.stringify({text: txtfile}))
+                        //make a controll that tests for date of ifs txt/pdf upload.  Also, need to update database to include the title in the keyword analysis...
                         // response.send( JSON.stringify({json: ifsData.init(txtfile.text)} ) )
                     })
             } else {

@@ -12,11 +12,25 @@ var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?
 router.get('/sideMenu', function (req, response, next){
     const client = new MongoClient(url, {useNewUrlParser: true});
     
-    client.connect (function (err){
-        const db = client.db("tyndall1");
-        response.send({cool: "yeah"})
-        client.close();
-    })
+    // client.connect (function (err){
+    //     const db = client.db("tyndall1");
+    //     const collection = db.collection("entries");
+    //     console.log(collection)
+    //     collection.find({}).toArray(function(err, result){
+    //         console.log(result.length)
+    //         if (err){
+    //             response.send(null)
+    //             return
+    //         }else {
+    //             var payload = JSON.stringify(result);
+    //             response.send(payload);
+    //         }
+
+            
+    //     })
+    //     // response.send({cool: "yeah"})
+    //     client.close();
+    // })
     
 })
 

@@ -9,6 +9,17 @@ const assert = require('assert')
 
 var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
 
+router.get('/sideMenu', function (req, response, next){
+    const client = new MongoClient(url, {useNewUrlParser: true});
+    
+    client.connect (function (err){
+        const db = client.db("tyndall1");
+        response.send({cool: "yeah"})
+        client.close();
+    })
+    
+})
+
 router.get('/', function(req, response, next) {
     // var payload = GetCMSPayload(req.query.type, response);    
     // QueryMongoDB (response)

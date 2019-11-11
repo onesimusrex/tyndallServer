@@ -40,7 +40,7 @@ router.get('/', function(req, response, next) {
 
     getMongoClient (response, req.query.keyword);
     // MongooseCallback(response)
-    // console.log("data api contacted")
+    console.log("data api contacted")
 });
 
 function getMongoClient(response, keyword){

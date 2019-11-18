@@ -6,10 +6,15 @@ var MongoClient = require('mongodb').MongoClient;
 var ObjectID = require('mongodb').ObjectID;
 // var mongoose = require('mongoose');
 const assert = require('assert')
+const fs = require('fs')
+
 
 var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
+// var url = "mongodb://localhost:27017/admin"
 
 router.get('/sideMenu', function (req, response, next){
+
+    // /*
     const client = new MongoClient(url, {useNewUrlParser: true});
     
     client.connect (function (err){
@@ -22,6 +27,8 @@ router.get('/sideMenu', function (req, response, next){
                 response.send(null)
                 return
             }else {
+                console.log("returning everything")
+                storeData(docs, "here")
                 var payload = JSON.stringify(docs);
                 response.send(payload);
             }
@@ -31,8 +38,16 @@ router.get('/sideMenu', function (req, response, next){
     //     // response.send({cool: "yeah"})
     //     
     })
-    
+    // */
 })
+
+const storeData = (data, path) => {
+    try {
+        fs.writeFileSync(path, JSON.stringify(data))
+    } catch (err){
+        console.error(err)
+    }
+}
 
 router.get('/', function(req, response, next) {
     // var payload = GetCMSPayload(req.query.type, response);    
@@ -45,11 +60,11 @@ router.get('/', function(req, response, next) {
 
 function getMongoClient(response, keyword){
     const dbName = "tyndall1"
-    const client = new MongoClient(url, {useNewUrlParser: true});
+    var client = new MongoClient(url, {useNewUrlParser: true});
 
     client.connect (function (err){
         // assert.equal(null, err);
-        // console.log("Connected successfully to server");
+        console.log("Connected successfully to server");
         const db = client.db("tyndall1");
         // insertDocuments
         //console.log(db)
@@ -149,7 +164,7 @@ function insertDocuments (db, callback){
 }
 
 function QueryMongoDB (response){
-    MongoClient.connect('mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority', (err, database) => {
+    MongoClient.connect(/*'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'*/url, (err, database) => {
         //start the server
         // mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority
         // response.send(database)

@@ -24,6 +24,7 @@ function init (ifsText){
 
     // returns patterns that matche 6 digit csi code and document header
     var csiPattern = /([\n][\d]{2}[\s][\d]{2}[\s][\d]{2})/gm;
+    var _4dig = /([\n][\d]{2}[\s][\d]{2}[\s](?:[\d]{2}.[\d]{2}|[\d]{2}))/gm;
     var headerPattern = /[\w]*[\s]*[\d]*[\s]*IFS Design Guide Appendix \| Rough Draft\s*\w*\s*\d*\s*\d*\s*[\w]*[\s]*[\d]*[\s]*[\d]*/gm
     var divisionHeading = /(DIVISION[\s]*[\d]*(?:[\s]*[A-Z]*(?:,)?)*[\s])/gm
 

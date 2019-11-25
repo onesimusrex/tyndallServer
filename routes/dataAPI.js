@@ -12,6 +12,32 @@ const fs = require('fs')
 var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
 // var url = "mongodb://localhost:27017/admin"
 
+router.get('/sidebarDL', function (req, response, next){
+    const client = new MongoClient(url, {useNewUrlParser: true});
+
+    client.connect (function (err){
+        const db = client.db("tyndall1");
+        const collection = db.collection("entries");
+        collection.find({}).toArray(function(err, docs){
+            // console.log(console.log(docs))
+            if (err){
+                response.send(null)
+                return
+            }else {
+                // console.log("returning everything")
+                // storeData(docs, "here")
+                docsCopy = docs.map(function (item){
+                    return {csi: item.csi}
+                })
+                var payload = JSON.stringify(docsCopy);
+                response.send(payload);
+            }
+
+            client.close();
+        })
+    })
+})
+
 router.get('/sideMenu', function (req, response, next){
 
     // /*

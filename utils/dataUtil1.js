@@ -8,7 +8,7 @@ function ifsData () {
     this.ProcessIFSData = ProcessIFSData;
     this.nlp = nlp;
 }
-
+var divisionHeading = /(DIVISION[\s]*[\d]*(?:[\s]*[A-Z]*(?:,)?)*[\s])/gm
 function init (ifsText){
     str = "\`"+ifsText+"\`"
     superagent = require ('superagent');
@@ -21,18 +21,18 @@ function init (ifsText){
         url: 'https://gateway.watsonplatform.net/natural-language-understanding/api'
     })
 
-
     // returns patterns that matche 6 digit csi code and document header
-    var csiPattern = /([\n][\d]{2}[\s][\d]{2}[\s][\d]{2})/gm;
-    var _4dig = /([\n][\d]{2}[\s][\d]{2}[\s](?:[\d]{2}.[\d]{2}|[\d]{2}))/gm;
-    var headerPattern = /[\w]*[\s]*[\d]*[\s]*IFS Design Guide Appendix \| Rough Draft\s*\w*\s*\d*\s*\d*\s*[\w]*[\s]*[\d]*[\s]*[\d]*/gm
-    var divisionHeading = /(DIVISION[\s]*[\d]*(?:[\s]*[A-Z]*(?:,)?)*[\s])/gm
+    var csiPattern_old = /([\n][\d]{2}[\s][\d]{2}[\s][\d]{2})/gm;
+    var csiPattern = /([\n][\d]{2}[\s][\d]{2}[\s](?:[\d]{2}.[\d]{2}|[\d]{2}))/gm;
+    var headerPattern_old = /[\w]*[\s]*[\d]*[\s]*IFS Design Guide Appendix \| Rough Draft\s*\w*\s*\d*\s*\d*\s*[\w]*[\s]*[\d]*[\s]*[\d]*/gm
+    var headerPattern = /[\w]*[\s]*[\d]*[\s]*[\d]*.*Rebuild Technical Guidelines \| Final\s*\w*\s*\d*\s*\d*\s*[\w]*[\s]*[\d]*[\s]*[\d]*/gm
 
     words = str.split(csiPattern);
     words = words.slice(1);
     data = []        
 
     for (i=0;i<words.length;i=i+2){
+    // const throttleProcess = (words, i) => {
         if (i == 0){
             var header1 = words[i].slice(1).split("\n")
             var headerBod = header1.slice(1).join(" ").split(headerPattern).join("")
@@ -60,27 +60,15 @@ function init (ifsText){
         if (heading){
             data.push(heading);
         }
+    // }
     }
-
 
     this.ElimCategoryText(data)
     _this = this;
 
     this.ProcessIFSData(naturalLanguageUnderstanding, _this);
 
-}
 
-function ElimCategoryText(_data){
-    for (var i=0; i<_data.length; i++){
-        if (_data[i].type == "category"){
-            bodySplit = _data[i-1].body.split(divisionHeading);
-            _data[i-1] = bodySplit[0].trim();
-            _word = _data[i].csi = _data[i+1].csi;
-            _data[i].l1 = _word.slice(0,2)
-            _data[i].l2 = _word.slice(3,5)
-            _data[i].l3 = _word.slice(6)
-        }
-    }
 }
 
 function GetHeadings (body, _divisionHeading ){
@@ -99,6 +87,101 @@ function GetHeadings (body, _divisionHeading ){
             body: _text
         };
     }
+}
+
+function ElimCategoryText(_data){
+    for (var i=0; i<_data.length; i++){
+        if (_data[i].type == "category"){
+            bodySplit = _data[i-1].body.split(divisionHeading);
+            _data[i-1] = bodySplit[0].trim();
+            _word = _data[i].csi = _data[i+1].csi;
+            _data[i].l1 = _word.slice(0,2)
+            _data[i].l2 = _word.slice(3,5)
+            _data[i].l3 = _word.slice(6)
+        }
+    }
+}
+
+
+
+function ProcessIFSData(naturalLanguageUnderstanding, _this) {
+    throttleProcess(data, 0, naturalLanguageUnderstanding, _this);
+
+    /*
+
+
+    for (var i=0; i<data.length; i++){
+        if (data[i].body != ''  && data[i].body != "\r"){
+            // console.log(data[i])
+            // if (data[i].csi == '08 71 00'){
+            //prints the data item
+            // console.log(data[i].csi + '\n' + data[i].title + '\n' + data[i].body)
+            _this.GetKeywordRelevance(data[i].title + '\n' + data[i].body, 30, naturalLanguageUnderstanding, data[i]);
+        }
+    }
+    
+    */
+
+
+    // _this = this
+    // _count = data.length - 1
+    // this.nlp(data, naturalLanguageUnderstanding, _count, _this)
+}
+
+const throttleProcess = (data, i, naturalLanguageUnderstanding, _this) => {
+    console.log(i)
+    if (data[i]){
+        if (data[i].body != ''  && data[i].body != "\r"){
+            // console.log(data[i])
+            // if (data[i].csi == '08 71 00'){
+            //prints the data item
+            // console.log(data[i].csi + '\n' + data[i].title + '\n' + data[i].body)
+            _this.GetKeywordRelevance(data[i].title + '\n' + data[i].body, 30, naturalLanguageUnderstanding, data[i]);
+        }
+    }
+    i++;
+    if (data[i]){
+        if (i<data.length){
+            setTimeout(throttleProcess, 100, words, i, naturalLanguageUnderstanding, _this);
+        }
+    } else {
+        setTimeout(throttleProcess, 100, words, i++, naturalLanguageUnderstanding, _this);
+    }
+
+}
+
+function GetKeywordRelevance(_text, num, nlu, dataitem){
+    var analyzeParams = {
+        // 'url': 'www.nytimes.com',
+        text: _text,
+        'features': {
+            'keywords': {
+                'limit': num
+            },
+            'relations': {},
+            'entities': {
+                'limit': num,
+                'mentions': true
+            },
+            'concepts': {
+                'limit': num
+            }
+        }
+    }
+    var ibmSendTime = new Date() 
+    // console.log("send time: " +ibmSendTime.toString())
+    _this = this;
+    nlu.analyze(analyzeParams)
+        .then(analysisResults => {
+            // console.log(JSON.stringify(analysisResults.result, null, 2))
+            // console.log(this)
+            _this.AddNlpFeature(analysisResults.result, dataitem)
+            // console.log(_this.AddNlpFeature(analysisResults.result, dataitem));
+            // return _this.AddNlpFeature(analysisResults.result);
+        })
+        .catch(err => {
+            console.log('error', err);
+        })
 }
 
 function AddNlpFeature(_analysisResults, dataitem){
@@ -140,8 +223,6 @@ function AddNlpFeature(_analysisResults, dataitem){
     // console.log(dataitem)
     // return nlpData;
 
-
-
     mongo2(dataitem)
     return dataitem;
 }
@@ -150,13 +231,13 @@ function mongo2(dataitem, mongoClient){
     var MongoClient = require('mongodb').MongoClient;
     const assert = require('assert')
     var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
-    const dbName = "tyndall1"
+    const dbName = "tyndall2"
     const client = new MongoClient(url, {useNewUrlParser: true});
 
     client.connect (function (err){
         // assert.equal(null, err);
         console.log("Connected successfully to server");
-        const db = client.db("tyndall1");
+        const db = client.db("tyndall2");
         // insertDocuments
         //console.log(db)
         insertDocuments(db, console.log, dataitem)
@@ -165,30 +246,13 @@ function mongo2(dataitem, mongoClient){
 }
 
 function insertDocuments (db, callback, dataitem){
-    const collection = db.collection("entries");
+    const collection = db.collection("entriesT2");
     collection.insertMany([
         dataitem
     ], function (err, result){
         // assert.equal(err, null);
         // callback(result)
     })
-}
-
-function ProcessIFSData(naturalLanguageUnderstanding, _this) {
-    // /*
-    for (var i=0; i<data.length; i++){
-        if (data[i].body != ''  && data[i].body != "\r"){
-            // console.log(data[i])
-            // if (data[i].csi == '08 71 00'){
-            //prints the data item
-            // console.log(data[i].csi + '\n' + data[i].title + '\n' + data[i].body)
-            this.GetKeywordRelevance(data[i].body, 30, naturalLanguageUnderstanding, data[i]);
-        }
-        
-    }
-    // _this = this
-    // _count = data.length - 1
-    // this.nlp(data, naturalLanguageUnderstanding, _count, _this)
 }
 
 function nlp(data, naturalLanguageUnderstanding, _count, _this){
@@ -206,49 +270,9 @@ function nlp(data, naturalLanguageUnderstanding, _count, _this){
     }
 }
 
-function GetKeywordRelevance(_text, num, nlu, dataitem){
-    var analyzeParams = {
-        // 'url': 'www.nytimes.com',
-        text: _text,
-        'features': {
-            'keywords': {
-                'limit': num
-            },
-            'relations': {},
-            'entities': {
-                'limit': num,
-                'mentions': true
-            },
-            'concepts': {
-                'limit': num
-            }
-        }
-    }
-    var ibmSendTime = new Date() 
-    // console.log("send time: " +ibmSendTime.toString())
-    _this = this;
-    nlu.analyze(analyzeParams)
-        .then(analysisResults => {
-            // console.log(JSON.stringify(analysisResults.result, null, 2))
-            // console.log(this)
-            _this.AddNlpFeature(analysisResults.result, dataitem)
-            // console.log(_this.AddNlpFeature(analysisResults.result, dataitem));
-            // return _this.AddNlpFeature(analysisResults.result);
-        })
-        .catch(err => {
-            console.log('error', err);
-        })
-}
-
 //loads text data
 
 module.exports = new ifsData();
-
-
-
-
-
-
 
 // console.log(AddNlpFeature())
 // console.log(data)

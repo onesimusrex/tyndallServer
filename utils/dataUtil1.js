@@ -63,41 +63,41 @@ async function init (ifsText, _res){
 
 }
 
-async function headings (_this){
-    for (i=0;i<words.length;i=i+2){
-    // const throttleProcess = (words, i) => {
-        if (i == 0){
-            var header1 = words[i].slice(1).split("\n")
-            var headerBod = header1.slice(1).join(" ").split(headerPattern).join("")
-            heading1 = _this.GetHeadings(headerBod, divisionHeading)
-            if (heading1){
-                data.push(heading1);
-            }
+function headings (_this){
+    return new Promise (function (resolve, reject){
+        for (i=0;i<words.length;i=i+2){
+            // const throttleProcess = (words, i) => {
+                if (i == 0){
+                    var header1 = words[i].slice(1).split("\n")
+                    var headerBod = header1.slice(1).join(" ").split(headerPattern).join("")
+                    heading1 = _this.GetHeadings(headerBod, divisionHeading)
+                    if (heading1){
+                        data.push(heading1);
+                    }
+                }
+                
+                var text = words[i+1].slice(1).split("\n")
+                var body = text.slice(1).join(" ").split(headerPattern).join("")
+                
+                words[i] = words[i].slice(1); 
+                data.push({
+                    type: "subcategory",
+                    csi: words[i],
+                    l1: words[i].slice(0,2),
+                    l2: words[i].slice(3,5),
+                    l3: words[i].slice(6),
+                    title: text[0],
+                    body: body
+                })
+                //delete redundant heading text
+                heading = _this.GetHeadings(body, divisionHeading)
+                if (heading){
+                    data.push(heading);
+                }
+            // }
+            // _res.send(JSON.stringify(data[0]));
         }
-        
-        var text = words[i+1].slice(1).split("\n")
-        var body = text.slice(1).join(" ").split(headerPattern).join("")
-        
-        words[i] = words[i].slice(1); 
-        data.push({
-            type: "subcategory",
-            csi: words[i],
-            l1: words[i].slice(0,2),
-            l2: words[i].slice(3,5),
-            l3: words[i].slice(6),
-            title: text[0],
-            body: body
-        })
-        //delete redundant heading text
-        heading = _this.GetHeadings(body, divisionHeading)
-        if (heading){
-            data.push(heading);
-        }
-    // }
-    // _res.send(JSON.stringify(data[0]));
-    }
-
-    return data
+    })
 }
 
 function GetHeadings (body, _divisionHeading ){

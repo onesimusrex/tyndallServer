@@ -9,8 +9,8 @@ const assert = require('assert')
 const fs = require('fs')
 
 
-var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
-// var url = "mongodb://localhost:27017/admin"
+// var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
+var url = "mongodb://localhost:27017/admin"
 
 router.get('/sidebarDL', function (req, response, next){
     const client = new MongoClient(url, {useNewUrlParser: true});

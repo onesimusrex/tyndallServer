@@ -4,6 +4,7 @@ const request = require('superagent');
 var ifsData = require('../utils/dataUtil1.js')
 var MongoClient = require('mongodb').MongoClient;
 const assert = require('assert')
+// var _ifsData = new ifsData.ifsData();
 
 router.get('/', function(req, response, next) {
     var payload = GetCMSPayload(req.query.type, response);    
@@ -22,7 +23,16 @@ function GetCMSPayload(query, response){
                     .then(function(txtfile){
                         // console.log(txtfile.text)
                         // console.log("ha")
-                        console.log("process" + ifsData.init(txtfile.text, response));
+                        
+                        // ifsData.init(txtfile.text).then((value) => {
+                        //     console.log("value")
+                        //     response.send(value);
+                        // });
+                        var resp = ifsData.init(txtfile.text)
+                        console.log(resp)
+                        // original code
+                        // response.send (ifsData.init(txtfile.text, response));
+
                         // response.send(JSON.stringify({text: txtfile}))
                         //make a controll that tests for date of ifs txt/pdf upload.  Also, need to update database to include the title in the keyword analysis...
                         // response.send( JSON.stringify({json: ifsData.init(txtfile.text)} ) )

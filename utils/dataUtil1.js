@@ -1,42 +1,75 @@
 function ifsData () {
     this.init = init;
-    this.data = {};
+    this.data = [];
+    this.str = "";
     this.ElimCategoryText = ElimCategoryText;
     this.GetHeadings = GetHeadings;
     this.GetKeywordRelevance = GetKeywordRelevance;
     this.AddNlpFeature = AddNlpFeature;
     this.ProcessIFSData = ProcessIFSData;
     this.nlp = nlp;
+    this.words;
 }
 var divisionHeading = /(DIVISION[\s]*[\d]*(?:[\s]*[A-Z]*(?:,)?)*[\s])/gm
-function init (ifsText){
-    str = "\`"+ifsText+"\`"
+data = [];
+
+async function init (ifsText, _res){
+
+    debugArr = []
+    MongoClient = require('mongodb').MongoClient;
     superagent = require ('superagent');
+    url = "mongodb://localhost:27017/admin"
+    var options = { server:
+        { socketOptions: 
+             { 
+                 socketTimeoutMS: 180000, 
+                 connectTimeoutMS: 180000,
+                 reconnectTries: 30
+             }
+         }
+       };
+    client = new MongoClient(url, options, {useNewUrlParser: true});
+
+    this.str = "\`"+ifsText+"\`"
+    
     const NaturalLanguageUnderstandingV1 = require ('ibm-watson/natural-language-understanding/v1');
     const { IamAuthenticator } = require ('ibm-watson/auth');
-
+    //Asrl_esdUauoAsbVmTG5KxM8BaiqCpBo2rpqY08XCSqN
     const naturalLanguageUnderstanding = new NaturalLanguageUnderstandingV1({
         version: '2019-07-12',
-        authenticator: new IamAuthenticator({ apikey: 'Asrl_esdUauoAsbVmTG5KxM8BaiqCpBo2rpqY08XCSqN'}),
+        authenticator: new IamAuthenticator({ apikey: 'LhGDa3MVTk9WRQIIi7401Qh6I3bTUmX0J5i2rzi4v_uD'}),
         url: 'https://gateway.watsonplatform.net/natural-language-understanding/api'
     })
 
-    // returns patterns that matche 6 digit csi code and document header
     var csiPattern_old = /([\n][\d]{2}[\s][\d]{2}[\s][\d]{2})/gm;
-    var csiPattern = /([\n][\d]{2}[\s][\d]{2}[\s](?:[\d]{2}.[\d]{2}|[\d]{2}))/gm;
+    csiPattern = /([\n][\d]{2}[\s][\d]{2}[\s](?:[\d]{2}.[\d]{2}|[\d]{2}))/gm;
     var headerPattern_old = /[\w]*[\s]*[\d]*[\s]*IFS Design Guide Appendix \| Rough Draft\s*\w*\s*\d*\s*\d*\s*[\w]*[\s]*[\d]*[\s]*[\d]*/gm
-    var headerPattern = /[\w]*[\s]*[\d]*[\s]*[\d]*.*Rebuild Technical Guidelines \| Final\s*\w*\s*\d*\s*\d*\s*[\w]*[\s]*[\d]*[\s]*[\d]*/gm
+    headerPattern = /[\w]*[\s]*[\d]*[\s]*[\d]*.*Rebuild Technical Guidelines \| Final\s*\w*\s*\d*\s*\d*\s*[\w]*[\s]*[\d]*[\s]*[\d]*/gm
 
-    words = str.split(csiPattern);
-    words = words.slice(1);
-    data = []        
+    words = this.str.split(csiPattern);
+    words = words.slice(1);     
 
+    //return {hi: "byesss"}
+    // return JSON.stringify(data[0])
+
+    // var initret = headings(this).then ((_data) => {
+    //     // console.log(_data[0])
+    //     // return JSON.stringify(_data[0])
+    //     return JSON.stringify("lkjlkjl")
+    //     //this.ElimCategoryText(data, naturalLanguageUnderstanding));
+    // })      
+
+    return "blah";
+
+}
+
+async function headings (_this){
     for (i=0;i<words.length;i=i+2){
     // const throttleProcess = (words, i) => {
         if (i == 0){
             var header1 = words[i].slice(1).split("\n")
             var headerBod = header1.slice(1).join(" ").split(headerPattern).join("")
-            heading1 = this.GetHeadings(headerBod, divisionHeading)
+            heading1 = _this.GetHeadings(headerBod, divisionHeading)
             if (heading1){
                 data.push(heading1);
             }
@@ -56,19 +89,15 @@ function init (ifsText){
             body: body
         })
         //delete redundant heading text
-        heading = this.GetHeadings(body, divisionHeading)
+        heading = _this.GetHeadings(body, divisionHeading)
         if (heading){
             data.push(heading);
         }
     // }
+    // _res.send(JSON.stringify(data[0]));
     }
 
-    this.ElimCategoryText(data)
-    _this = this;
-
-    this.ProcessIFSData(naturalLanguageUnderstanding, _this);
-
-
+    return data
 }
 
 function GetHeadings (body, _divisionHeading ){
@@ -89,17 +118,23 @@ function GetHeadings (body, _divisionHeading ){
     }
 }
 
-function ElimCategoryText(_data){
-    for (var i=0; i<_data.length; i++){
-        if (_data[i].type == "category"){
-            bodySplit = _data[i-1].body.split(divisionHeading);
-            _data[i-1] = bodySplit[0].trim();
-            _word = _data[i].csi = _data[i+1].csi;
-            _data[i].l1 = _word.slice(0,2)
-            _data[i].l2 = _word.slice(3,5)
-            _data[i].l3 = _word.slice(6)
-        }
-    }
+function ElimCategoryText(data, naturalLanguageUnderstanding){
+    // for (var i=0; i<data.length; i++){
+    //     if (data[i].type == "category"){
+    //         bodySplit = data[i-1].body.split(divisionHeading);
+    //         data[i-1] = bodySplit[0].trim();
+    //         _word = data[i].csi = data[i+1].csi;
+    //         data[i].l1 = _word.slice(0,2)
+    //         data[i].l2 = _word.slice(3,5)
+    //         data[i].l3 = _word.slice(6)
+    //     }
+    // }
+    // return JSON.stringify(data)
+    console.log(data)
+    return JSON.stringify(data);
+    // _this = this;
+
+    // this.ProcessIFSData(naturalLanguageUnderstanding, _this);
 }
 
 
@@ -111,13 +146,13 @@ function ProcessIFSData(naturalLanguageUnderstanding, _this) {
 
 
     for (var i=0; i<data.length; i++){
-        if (data[i].body != ''  && data[i].body != "\r"){
+        // if (data[i].body != ''  && data[i].body != "\r"){
             // console.log(data[i])
             // if (data[i].csi == '08 71 00'){
             //prints the data item
             // console.log(data[i].csi + '\n' + data[i].title + '\n' + data[i].body)
             _this.GetKeywordRelevance(data[i].title + '\n' + data[i].body, 30, naturalLanguageUnderstanding, data[i]);
-        }
+        // }
     }
     
     */
@@ -223,16 +258,20 @@ function AddNlpFeature(_analysisResults, dataitem){
     // console.log(dataitem)
     // return nlpData;
 
+    /*
     mongo2(dataitem)
-    return dataitem;
+    */
+    debugArr.push(dataitem)
+    //  return dataitem;
 }
 
 function mongo2(dataitem, mongoClient){
-    var MongoClient = require('mongodb').MongoClient;
-    const assert = require('assert')
-    var url = 'mongodb+srv://jacobs:Jacobs123@cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
+    
+    // var url = 'mongodb+srv://jacobs:Jacobs123@   cluster0-rjppa.azure.mongodb.net/test?retryWrites=true&w=majority'
+    
+    // console.log(url)
     const dbName = "tyndall2"
-    const client = new MongoClient(url, {useNewUrlParser: true});
+    
 
     client.connect (function (err){
         // assert.equal(null, err);
